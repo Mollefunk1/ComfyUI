@@ -1,0 +1,46 @@
+{
+  "1": {
+    "class_type": "LoadImageDataSetFromFolder",
+    "inputs": {
+      "folder": "to_upscale"
+    }
+  },
+  "2": {
+    "class_type": "UpscaleModelLoader",
+    "inputs": {
+      "model_name": "4x-UltraSharpV2.safetensors"
+    }
+  },
+  "3": {
+    "class_type": "ImageUpscaleWithModel",
+    "inputs": {
+      "upscale_model": ["2", 0],
+      "image": ["1", 0]
+    }
+  },
+  "4": {
+    "class_type": "ImageSharpen",
+    "inputs": {
+      "image": ["3", 0],
+      "sharpen_radius": 1,
+      "sigma": 1.0,
+      "alpha": 0.8
+    }
+  },
+  "5": {
+    "class_type": "ImageColorAdjust",
+    "inputs": {
+      "image": ["4", 0],
+      "saturation": 1.08
+    }
+  },
+  "6": {
+    "class_type": "SaveImageDataSetToFolder",
+    "inputs": {
+      "images": ["5", 0],
+      "folder_name": "C:\\Users\\Sean\\OneDrive\\Skrivebord\\upscale output",
+      "filename_prefix": "upscaled",
+      "append_timestamp": true
+    }
+  }
+}

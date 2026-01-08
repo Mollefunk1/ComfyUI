@@ -164,7 +164,9 @@ def save_images_to_folder(image_list, output_dir, prefix="image"):
     Returns:
         List of saved filenames
     """
-    os.makedirs(output_dir, exist_ok=True)
+    # output_dir can be either a string path or a helper dict {"path": path, "pnginfo_for_all": PngInfo}
+    out_path = output_dir["path"] if isinstance(output_dir, dict) else output_dir
+    os.makedirs(out_path, exist_ok=True)
     saved_files = []
 
     for idx, img_tensor in enumerate(image_list):
@@ -192,10 +194,18 @@ def save_images_to_folder(image_list, output_dir, prefix="image"):
         else:
             raise ValueError(f"Expected torch.Tensor, got {type(img_tensor)}")
 
-        # Save image
+        # Save image (png metadata may be attached by caller)
         filename = f"{prefix}_{idx:05d}.png"
-        filepath = os.path.join(output_dir, filename)
-        img.save(filepath)
+        filepath = os.path.join(out_path, filename)
+        # If the caller provided a `pnginfo` argument via output_dir dict, use it.
+        pnginfo = None
+        if isinstance(output_dir, dict) and "pnginfo_for_all" in output_dir:
+            pnginfo = output_dir["pnginfo_for_all"]
+
+        if pnginfo is not None:
+            img.save(filepath, pnginfo=pnginfo)
+        else:
+            img.save(filepath)
         saved_files.append(filename)
 
     return saved_files
@@ -223,18 +233,39 @@ class SaveImageDataSetToFolderNode(io.ComfyNode):
                     default="image",
                     tooltip="Prefix for saved image filenames.",
                 ),
+                io.Boolean.Input(
+                    "append_timestamp",
+                    default=True,
+                    tooltip="Append a YYYY-MM-DD_HHMMSS timestamp to the filename prefix to avoid overwriting previous runs.",
+                ),
             ],
             outputs=[],
         )
 
     @classmethod
-    def execute(cls, images, folder_name, filename_prefix):
+    def execute(cls, images, folder_name, filename_prefix, append_timestamp=True):
         # Extract scalar values
         folder_name = folder_name[0]
         filename_prefix = filename_prefix[0]
+        append_timestamp = append_timestamp[0] if isinstance(append_timestamp, (list, tuple)) else append_timestamp
+
+        # Optionally append a timestamp to the prefix to avoid overwrites when running multiple times
+        if append_timestamp:
+            from datetime import datetime
+
+            now = datetime.now()
+            ts = now.strftime("%Y-%m-%d_%H%M%S")
+            filename_prefix = f"{filename_prefix}_{ts}"
 
         output_dir = os.path.join(folder_paths.get_output_directory(), folder_name)
-        saved_files = save_images_to_folder(images, output_dir, filename_prefix)
+        # Create png metadata from the node's hidden context if available
+        try:
+            from comfy_api.latest._ui import ImageSaveHelper
+            metadata = ImageSaveHelper._create_png_metadata(cls)
+        except Exception:
+            metadata = None
+        output_dir_helper = {"path": output_dir, "pnginfo_for_all": metadata} if metadata is not None else output_dir
+        saved_files = save_images_to_folder(images, output_dir_helper, filename_prefix)
 
         logging.info(f"Saved {len(saved_files)} images to {output_dir}.")
         return io.NodeOutput()
@@ -274,7 +305,14 @@ class SaveImageTextDataSetToFolderNode(io.ComfyNode):
         filename_prefix = filename_prefix[0]
 
         output_dir = os.path.join(folder_paths.get_output_directory(), folder_name)
-        saved_files = save_images_to_folder(images, output_dir, filename_prefix)
+        # Create png metadata from the node's hidden context if available
+        try:
+            from comfy_api.latest._ui import ImageSaveHelper
+            metadata = ImageSaveHelper._create_png_metadata(cls)
+        except Exception:
+            metadata = None
+        output_dir_helper = {"path": output_dir, "pnginfo_for_all": metadata} if metadata is not None else output_dir
+        saved_files = save_images_to_folder(images, output_dir_helper, filename_prefix)
 
         # Save captions
         for idx, (filename, caption) in enumerate(zip(saved_files, texts)):

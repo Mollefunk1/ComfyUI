@@ -2,7 +2,7 @@ from typing_extensions import override
 import numpy as np
 import torch
 import torch.nn.functional as F
-from PIL import Image
+from PIL import Image, ImageEnhance
 import math
 
 import comfy.utils
@@ -208,6 +208,39 @@ class Sharpen(io.ComfyNode):
 
         return io.NodeOutput(result.to(comfy.model_management.intermediate_device()))
 
+
+class ImageColorAdjust(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="ImageColorAdjust",
+            category="image/postprocessing",
+            inputs=[
+                io.Image.Input("image"),
+                io.Float.Input("saturation", default=1.08, min=0.0, max=3.0, step=0.01, tooltip="Saturation multiplier (1.0 = no change)."),
+            ],
+            outputs=[
+                io.Image.Output(),
+            ],
+            is_experimental=True,
+        )
+
+    @classmethod
+    def execute(cls, image: torch.Tensor, saturation: float) -> io.NodeOutput:
+        # image is (B, H, W, C) with float32 in [0,1]
+        batch_size, height, width, channels = image.shape
+        result = torch.zeros_like(image)
+
+        for b in range(batch_size):
+            im = Image.fromarray((image[b] * 255).to(torch.uint8).cpu().numpy(), mode='RGB')
+            if saturation != 1.0:
+                enhancer = ImageEnhance.Color(im)
+                im = enhancer.enhance(float(saturation))
+            arr = np.array(im).astype(np.float32) / 255.0
+            result[b] = torch.tensor(arr)
+
+        return io.NodeOutput(result.to(comfy.model_management.intermediate_device()))
+
 class ImageScaleToTotalPixels(io.ComfyNode):
     upscale_methods = ["nearest-exact", "bilinear", "area", "bicubic", "lanczos"]
     crop_methods = ["disabled", "center"]
@@ -248,6 +281,7 @@ class PostProcessingExtension(ComfyExtension):
             Blur,
             Quantize,
             Sharpen,
+            ImageColorAdjust,
             ImageScaleToTotalPixels,
         ]
 

@@ -1,0 +1,360 @@
+{
+  "id": "1e96c531-e08b-45f1-bb11-c80895731c06",
+  "revision": 0,
+  "last_node_id": 109,
+  "last_link_id": 209,
+  "nodes": [
+    {
+      "id": 107,
+      "type": "Note",
+      "pos": [
+        -728.5932006835938,
+        1048.3660888671875
+      ],
+      "size": [
+        210,
+        88
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "ここでイメージをロードする\nvalueで0,1,2,3,4,5,と読み込む\n\n0をデフォルトにしておいてください\n\n"
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 77,
+      "type": "ImageUpscaleWithModel",
+      "pos": [
+        195.37030029296875,
+        947.4181518554688
+      ],
+      "size": [
+        230,
+        50
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "upscale_model",
+          "type": "UPSCALE_MODEL",
+          "link": 122
+        },
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 209
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "slot_index": 0,
+          "links": [
+            203
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.43",
+        "Node name for S&R": "ImageUpscaleWithModel",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [],
+      "color": "#2a363b",
+      "bgcolor": "#3f5159"
+    },
+    {
+      "id": 76,
+      "type": "UpscaleModelLoader",
+      "pos": [
+        197.9081573486328,
+        810.384765625
+      ],
+      "size": [
+        230,
+        90
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "UPSCALE_MODEL",
+          "type": "UPSCALE_MODEL",
+          "slot_index": 0,
+          "links": [
+            122
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.43",
+        "Node name for S&R": "UpscaleModelLoader",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "RealESRGAN_x2plus.pth"
+      ],
+      "color": "#223",
+      "bgcolor": "#335"
+    },
+    {
+      "id": 94,
+      "type": "SaveImage",
+      "pos": [
+        469.8828430175781,
+        817.3878173828125
+      ],
+      "size": [
+        428.1004638671875,
+        637.2669067382812
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 203
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
+        "Node name for S&R": "SaveImage",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "FluxDev-Img2Img-Upscale"
+      ],
+      "color": "#222",
+      "bgcolor": "#000"
+    },
+    {
+      "id": 109,
+      "type": "Note",
+      "pos": [
+        -172.9307403564453,
+        1238.020751953125
+      ],
+      "size": [
+        221.00303649902344,
+        93.64744567871094
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "実行するボタン（青いボタン）を押す前に、その右横にある 1  という数字をフォルダに有る画像枚数に変えてから実行ボタンを押します。\n半角英数字で入力する"
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 108,
+      "type": "Note",
+      "pos": [
+        -175.78091430664062,
+        1094.2869873046875
+      ],
+      "size": [
+        221.00303649902344,
+        93.64744567871094
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "path にバッチ処理したいフォルダを入力してください"
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 105,
+      "type": "Load Image Batch",
+      "pos": [
+        -489.0252990722656,
+        905.1292724609375
+      ],
+      "size": [
+        293.416015625,
+        270
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "index",
+          "type": "INT",
+          "widget": {
+            "name": "index"
+          },
+          "link": 207
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            209
+          ]
+        },
+        {
+          "name": "filename_text",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "was-node-suite-comfyui",
+        "ver": "1.0.2",
+        "Node name for S&R": "Load Image Batch",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "single_image",
+        813019424050119,
+        "fixed",
+        0,
+        "Batch 001",
+        "",
+        "*",
+        "false",
+        "true"
+      ]
+    },
+    {
+      "id": 104,
+      "type": "PrimitiveNode",
+      "pos": [
+        -733.44580078125,
+        917.5732421875
+      ],
+      "size": [
+        210,
+        82
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "INT",
+          "type": "INT",
+          "widget": {
+            "name": "index"
+          },
+          "links": [
+            207
+          ]
+        }
+      ],
+      "title": "index",
+      "properties": {
+        "Run widget replace on values": false,
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        0,
+        "increment"
+      ]
+    }
+  ],
+  "links": [
+    [
+      122,
+      76,
+      0,
+      77,
+      0,
+      "UPSCALE_MODEL"
+    ],
+    [
+      203,
+      77,
+      0,
+      94,
+      0,
+      "IMAGE"
+    ],
+    [
+      207,
+      104,
+      0,
+      105,
+      0,
+      "INT"
+    ],
+    [
+      209,
+      105,
+      0,
+      77,
+      1,
+      "IMAGE"
+    ]
+  ],
+  "groups": [
+    {
+      "id": 5,
+      "title": "image load",
+      "bounding": [
+        -747.5639038085938,
+        833.7633056640625,
+        566.0899047851562,
+        338.3031005859375
+      ],
+      "color": "#3f789e",
+      "font_size": 24,
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.6588450000000011,
+      "offset": [
+        1189.075954857056,
+        -441.4683689846371
+      ]
+    },
+    "ue_links": [],
+    "links_added_by_ue": [],
+    "frontendVersion": "1.23.4",
+    "VHS_latentpreview": false,
+    "VHS_latentpreviewrate": 0,
+    "VHS_MetadataImage": true,
+    "VHS_KeepIntermediate": true
+  },
+  "version": 0.4
+}
