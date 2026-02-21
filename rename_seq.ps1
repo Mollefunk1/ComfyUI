@@ -10,7 +10,7 @@ Usage: Run the script and follow prompts.
 - Script does a collision-safe two-pass rename and opens the folder on completion
 
 Notes:
-- Files are ordered by LastWriteTimeUtc (then CreationTimeUtc, then Name) to match generation order.
+- Files are ordered alphabetically by filename (case-insensitive).
 - Renames preserve file contents (no re-encoding) so PNG metadata stays intact.
 - The script uses a temp-stage (append .tmp.<GUID>) to avoid clobbering.
 #>
@@ -64,8 +64,10 @@ $prefix = Prompt-ForPrefix
 $start = Prompt-ForStartNumber
 
 Write-Host "Scanning files in: $folder (ordering: alphabetical by filename)" -ForegroundColor Cyan
-$files = Get-ChildItem -LiteralPath $folder -File |
-    Sort-Object @{Expression={ $_.Name.ToLowerInvariant() }}
+$files = @(
+    Get-ChildItem -LiteralPath $folder -File |
+        Sort-Object @{Expression={ $_.Name.ToLowerInvariant() }}
+)
 
 if ($files.Count -eq 0) {
     Write-Host 'No files found in folder. Exiting.' -ForegroundColor Yellow
@@ -73,8 +75,8 @@ if ($files.Count -eq 0) {
 }
 
 # Compute padding width
-$maxIndex = $start + $files.Count - 1
-$width = $maxIndex.ToString().Length
+$width = ([math]::Max($start + $files.Count - 1, 0)).ToString().Length
+if ($width -lt 1) { $width = 1 }
 
 # Build mapping
 $mappings = @()
@@ -189,16 +191,28 @@ if ($phase2Errors.Count -gt 0) {
 # Write log
 $timestamp = (Get-Date).ToString('yyyyMMdd_HHmmss')
 $logPath = Join-Path $folder "rename_seq_log_$timestamp.txt"
-"Renamer run on $(Get-Date)`nFolder: $folder`nPrefix: $prefix`nStart: $start`nTotal: $total`nSuccess: $successCount`nFailures: $($phase2Errors.Count)`n`nMappings:`n" | Out-File -FilePath $logPath -Encoding UTF8
-foreach ($m in $mappings) {
-    "$($m.OriginalName) -> $($m.FinalName)" | Out-File -FilePath $logPath -Encoding UTF8 -Append
-}
-if ($phase2Errors.Count -gt 0) {
-    "`nErrors:`n" | Out-File -FilePath $logPath -Encoding UTF8 -Append
-    foreach ($e in $phase2Errors) { "- $($e.Mapping.OriginalName) -> $($e.Mapping.FinalName): $($e.Error)" | Out-File -FilePath $logPath -Encoding UTF8 -Append }
-}
+try {
+    "Renamer run on $(Get-Date)`nFolder: $folder`nPrefix: $prefix`nStart: $start`nTotal: $total`nSuccess: $successCount`nFailures: $($phase2Errors.Count)`n`nMappings:`n" |
+        Out-File -LiteralPath $logPath -Encoding UTF8
 
-Write-Host "Log written to: $logPath" -ForegroundColor Cyan
+    foreach ($m in $mappings) {
+        "$($m.OriginalName) -> $($m.FinalName)" |
+            Out-File -LiteralPath $logPath -Encoding UTF8 -Append
+    }
+
+    if ($phase2Errors.Count -gt 0) {
+        "`nErrors:`n" |
+            Out-File -LiteralPath $logPath -Encoding UTF8 -Append
+        foreach ($e in $phase2Errors) {
+            "- $($e.Mapping.OriginalName) -> $($e.Mapping.FinalName): $($e.Error)" |
+                Out-File -LiteralPath $logPath -Encoding UTF8 -Append
+        }
+    }
+
+    Write-Host "Log written to: $logPath" -ForegroundColor Cyan
+} catch {
+    Write-Warning "Could not write log file '$logPath'. Reason: $($_.Exception.Message)"
+}
 
 # Open folder
 try { Start-Process explorer.exe -ArgumentList $folder } catch { Invoke-Item $folder }
